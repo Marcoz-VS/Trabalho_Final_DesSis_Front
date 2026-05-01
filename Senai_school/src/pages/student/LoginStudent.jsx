@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import axios from 'axios'
+import { useLocation } from "react-router-dom";
 
 export default function LoginStudent() {
   const { login } = useAuth();
@@ -10,7 +11,17 @@ export default function LoginStudent() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
 
+useEffect(() => {
+  if (location.state) {
+    setForm({
+      email: location.state.email || "",
+      password: location.state.password || ""
+    });
+  }
+}, [location.state]);
+  
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -19,6 +30,7 @@ export default function LoginStudent() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
 
     try {
       const { data } = await api.post("/login", form);
@@ -54,23 +66,25 @@ export default function LoginStudent() {
       }}>
         <h2 style={{ textAlign: "center", color: "#1a1a2e" }}>Entrar na Senai-School</h2>
         
-        <input 
-          name="email" 
-          type="email" 
-          placeholder="E-mail" 
-          onChange={handleChange} 
-          required 
-          style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
-        />
-        
-        <input 
-          name="password" 
-          type="password" 
-          placeholder="Senha" 
-          onChange={handleChange} 
-          required 
-          style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
-        />
+<input 
+  name="email" 
+  type="email" 
+  placeholder="E-mail" 
+  value={form.email}
+  onChange={handleChange} 
+  required 
+  style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
+/>
+
+<input 
+  name="password" 
+  type="password" 
+  placeholder="Senha" 
+  value={form.password}
+  onChange={handleChange} 
+  required 
+            style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
+/>
 
         {error && <p style={{ color: "#e53e3e", fontSize: "0.85rem", textAlign: "center" }}>{error}</p>}
 

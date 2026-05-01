@@ -6,28 +6,35 @@ export default function ScoreStudent() {
   const [scores, setScores] = useState([]);
   const { user } = useAuth();
 
-  useEffect(() => {
-    async function fetchScores() {
-      try {
-        const studentRes = await api.get(`/student/${user?.id}`)
-        const student = studentRes
+useEffect(() => {
+  async function fetchScores() {
+    try {
+      const studentId =
+        typeof user.student === "object"
+          ? user.student?.id
+          : user.student;
 
-        const enrollmentRes = await api.get(`/enrollment/student/${student?.id}`);
-        const enrollment = enrollmentRes.data;
+      if (!studentId) return;
 
-        // 2. usa o enrollment_id
-        const { data } = await api.get(`/scores/enrollment/${enrollment.id}`);
+      const enrollmentRes = await api.get(`/enrollment/student/${studentId}`);
+      const enrollments = enrollmentRes.data;
 
-        setScores(data);
-      } catch (err) {
-        console.error(err);
-      }
+      const enrollmentId = enrollments[0]?.id;
+
+      if (!enrollmentId) return;
+
+      const { data } = await api.get(`/scores/enrollment/${enrollmentId}`);
+
+      setScores(data);
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    if (user) {
-      fetchScores();
-    }
-  }, [user]);
+  if (user?.student) {
+    fetchScores();
+  }
+}, [user])
 
   return (
     <div>

@@ -21,9 +21,14 @@ export default function RegisterStudent() {
     setError(null);
 
     try {
-        await api.post("/register/student", { ...form });
+    const { data } = await api.post("/register/student", { ...form });
         alert("Cadastro realizado! Agora você pode fazer login.");
-        navigate("/");
+        navigate("/", {
+       state: {
+    email: data.data.email,
+    password: data.data.temporaryPassword
+  }
+});;
       } catch (err) {
         let message = "Erro ao cadastrar";
       
