@@ -1,48 +1,51 @@
-import { useState, useContext } from 'react'
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import SettingsSidebar from '../../components/Sidebar'
-import { ThemeContext } from '../../context/ThemeContext';
+import { ThemeContext } from "../../context/ThemeContext";
 
 export default function HomeStudent() {
   const navigate = useNavigate();
-  const { user } = useAuth()
-  const [open, setOpen] = useState(false);
-  const { theme, toggleTheme } = useContext(ThemeContext); 
+  const { user } = useAuth();
+  const { theme } = useContext(ThemeContext);
 
-    const themeStyles = {
-    backgroundColor: theme === 'light' ? '#f5f5f5' : '#222',
-    color: theme === 'light' ? '#000' : '#fff',
-    minHeight: '100vh',
-    padding: '40px',
-    transition: 'all 0.3s ease',
-  };
+  
+const isDark = theme === "dark";
 
-  function Card({ title, path }) {
-    return (
-      <div
-        onClick={() => navigate(path)}
-        style={{
-          padding: "20px",
-          background: "#fff",
-          borderRadius: "8px",
-          cursor: "pointer",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-          textAlign: "center",
-          fontWeight: "bold"
-        }}
-      >
-        {title}
-      </div>
-    );
-  }
+const themeStyles = {
+  backgroundColor: isDark ? "#0f172a" : "#f5f5f5",
+  color: isDark ? "#f8fafc" : "#111827",
+  minHeight: "83vh",
+  padding: "40px",
+  transition: "all 0.3s ease",
+  marginTop: "50px"
+};
+
+function Card({ title, path }) {
+  return (
+    <div
+      onClick={() => navigate(path)}
+      style={{
+        height: "120px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "24px",
+        background: isDark ? "#1e293b" : "#fff",
+        color: isDark ? "#f8fafc" : "#111827",
+        borderRadius: "8px",
+        cursor: "pointer",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        textAlign: "center"
+      }}
+    >
+      {title}
+    </div>
+  );
+}
 
   return (
-   <div style={themeStyles}>
-    
-    <SettingsSidebar />
-
-      <h1>Bem-vindo {user?.name} 👋</h1>
+    <div style={themeStyles}>
+      <h1 style={{marginBottom: '50px'}}>Bem-vindo {user?.name} 👋</h1>
 
       <div style={{
         display: "grid",
@@ -50,11 +53,10 @@ export default function HomeStudent() {
         gap: "20px",
         marginTop: "20px"
       }}>
-        <Card title="📚 Turma" path="/student/class" />
+        <Card title="📚 Turmas" path="/student/class" />
         <Card title="🗓️ Horários" path="/student/schedule" />
         <Card title="📊 Notas" path="/student/scores" />
-        <Card title="🎓 Matrícula" path="/student/enrollment" />
-        <Card title="👤 Perfil" path="/student/profile" />
+        <Card title="🎓 Matrículas" path="/student/enrollment" />
       </div>
     </div>
   );

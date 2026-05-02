@@ -1,17 +1,25 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import LoginStudent from './pages/student/LoginStudent.jsx'
-import RegisterStudent from './pages/student/RegisterStudent.jsx'
+import LoginStudent from './pages/student/LoginStudent'
+import RegisterStudent from './pages/student/RegisterStudent'
 import HomeStudent from './pages/student/HomeStudent'
 import ScoreStudent from './pages/student/ScoreStudent'
 import ProfileStudent from './pages/student/ProfileStudent'
-import FirstTimePassword from "./pages/student/FirstTimeUpdate.jsx";
+import FirstTimePassword from "./pages/student/FirstTimeUpdate";
+import ClassStudent from "./pages/student/ClassStudent"
+import ScheduleStudent from './pages/student/ScheduleStudent'
+import EnrollmentStudent from './pages/student/EnrollmentStudent'
+import Layout from "./components/Layout"
+import { useContext } from "react";
+import { ThemeContext } from "./context/ThemeContext";
 
 export default function App() {
-  const { user } = useAuth();
-  console.log("USER:", user.firstTime);
+  const { theme } = useContext(ThemeContext);
+  const {user} = useAuth()
 
   return (
+    <div className={theme}>
+      <Layout>
     <Routes>
       <Route path="/" element={<LoginStudent />} />
       <Route path="/registerStudent" element={<RegisterStudent />} />
@@ -38,6 +46,26 @@ export default function App() {
           user?.firstTime ? <Navigate to="/first-login" /> : <ProfileStudent />
         }
       />
+        <Route
+        path="/student/class"
+        element={
+          user?.firstTime ? <Navigate to="/first-login" /> : <ClassStudent />
+        }
+      />
+        <Route
+        path="/student/schedule"
+        element={
+          user?.firstTime ? <Navigate to="/first-login" /> : <ScheduleStudent />
+        }
+      />
+      <Route
+        path="/student/enrollment"
+        element={
+          user?.firstTime ? <Navigate to="/first-login" /> : <EnrollmentStudent />
+        }
+      />
     </Routes>
+    </Layout>
+    </div>
   );
 }
