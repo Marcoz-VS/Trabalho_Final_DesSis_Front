@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout }}
+      value={{ user, token, login, logout, setUser }}
     >
       {children}
     </AuthContext.Provider>

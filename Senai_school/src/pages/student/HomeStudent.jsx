@@ -40,7 +40,7 @@ export default function HomeStudent() {
   return (
    <div style={themeStyles}>
     
- <SettingsSidebar />
+    <SettingsSidebar />
 
       <h1>Bem-vindo {user?.name} 👋</h1>
 

@@ -1,15 +1,17 @@
 import { useState, useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
+import UpdatePassModal from "./UpdatePassModal";
 
 export default function SettingsSidebar() {
   const [open, setOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const toggleSidebar = () => setOpen(!open);
 
   return (
     <>
-      {/* Botão */}
       <button
         onClick={toggleSidebar}
         style={{
@@ -24,7 +26,6 @@ export default function SettingsSidebar() {
         ⚙️
       </button>
 
-      {/* Sidebar */}
       <div
         style={{
           position: "fixed",
@@ -40,32 +41,34 @@ export default function SettingsSidebar() {
       >
         <h2>Configurações</h2>
 
-        {/* Tema */}
+
         <button
           onClick={toggleTheme}
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-            cursor: "pointer"
-          }}
+          style={item}
         >
-          {theme === "light" ? "🌙 Tema escuro" : "☀️ Tema claro"}
+          {theme === "light" ? "Tema escuro" : "Tema claro"}
         </button>
 
-        {/* Senha */}
         <button
-          style={{
-            width: "100%",
-            margin: "10px 0",
-            padding: "10px",
-            cursor: "pointer"
-          }}
-          onClick={() => alert("Abrir modal de senha")}
+          style={item}
+          onClick={() => setOpenModal(true)}
         >
-          🔒 Alterar Senha
+          Alterar Senha
         </button>
       </div>
+
+      {/* Modal */}
+      <UpdatePassModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+      />
     </>
   );
 }
+
+const item = {
+  width: "100%",
+  margin: "10px 0",
+  padding: "10px",
+  cursor: "pointer"
+};

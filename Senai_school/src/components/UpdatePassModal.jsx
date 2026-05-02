@@ -1,12 +1,15 @@
 import { useState } from "react";
 import api from "../services/api";
 
-export default function UpdatePassModal({ user, onClose, onSave }) {
+export default function UpdatePassModal({ open, onClose }) {
   const [form, setForm] = useState({
-    password: user.password || "",
-    birth_date: student.birth_date || "",
-    avatar_url: student.avatar_url || "",
+    current_password: "",
+    new_password: ""
   });
+
+  const [loading, setLoading] = useState(false);
+
+  if (!open) return null; 
 
   function handleChange(e) {
     setForm({
@@ -17,45 +20,49 @@ export default function UpdatePassModal({ user, onClose, onSave }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await api.put(`/students/${student.id}`, form);
+      const res = await api.put("/users/change-password", form);
 
-      onSave(res.data.data);
+      alert(res.data.message || "Senha alterada com sucesso!");
       onClose();
+
     } catch (err) {
-      console.error(err);
+      alert(err.response?.data?.message || "Erro ao alterar senha");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        <h3>Editar Perfil</h3>
+        <h3>Alterar Senha</h3>
 
         <form onSubmit={handleSubmit}>
           <input
-            name="phone"
-            placeholder="Telefone"
-            value={form.phone}
+            type="password" 
+            name="current_password"
+            placeholder="Senha atual"
+            value={form.current_password}
             onChange={handleChange}
+            required
           />
 
           <input
-            name="birth_date"
-            type="date"
-            value={form.birth_date}
+            type="password" 
+            name="new_password"
+            placeholder="Nova senha"
+            value={form.new_password}
             onChange={handleChange}
+            required
           />
 
-          <input
-            name="avatar_url"
-            placeholder="URL do avatar"
-            value={form.avatar_url}
-            onChange={handleChange}
-          />
+          <button type="submit" disabled={loading}>
+            {loading ? "Salvando..." : "Salvar"}
+          </button>
 
-          <button type="submit">Salvar</button>
           <button type="button" onClick={onClose}>
             Cancelar
           </button>
