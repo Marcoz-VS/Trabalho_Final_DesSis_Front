@@ -17,15 +17,21 @@ useEffect(() => {
       if (!studentId) return;
 
       const enrollmentRes = await api.get(`/enrollment/student/${studentId}`);
-      const enrollments = enrollmentRes.data;
+      const enrollments = enrollmentRes.data.data;
 
       const enrollmentId = enrollments[0]?.id;
 
+      console.log(enrollmentId)
+
       if (!enrollmentId) return;
 
-      const { data } = await api.get(`/scores/enrollment/${enrollmentId}`);
+      const data = await api.get(`/scores/enrollment/${enrollmentId}`);
 
-      setScores(data);
+      console.log(data)
+      setScores(data.data.data);
+
+
+
     } catch (err) {
       console.error(err);
     }
@@ -37,13 +43,13 @@ useEffect(() => {
 }, [user])
 
   return (
-    <div>
-      <h2>Minhas Notas</h2>
-
-      {scores.map((score) => (
-        <div key={score.id}>
-          {score.value}
-        </div>
+    <div style={{padding: '30px'}}>
+      <h2 style={{marginBottom: '50px'}}>Minhas Notas</h2>
+  {scores.map((score) => (
+<div key={score.id}>
+  <h2>Prova: {score.assessment}</h2>
+  <h3>Nota: {score.value}</h3>
+</div>
       ))}
     </div>
   );
