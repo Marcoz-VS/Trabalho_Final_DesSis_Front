@@ -2,13 +2,27 @@ import { useState, useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import UpdatePassModal from "./UpdatePassModal";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
   const [openModal, setOpenModal] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { user, logout } = useAuth();
 
   const navigate = useNavigate();
   const isDark = theme === "dark";
+
+  const getHomePath = () => {
+    if (user?.role === "admin") return "/homeAdmin";
+    if (user?.role === "professor") return "/homeProfessor";
+    return "/homeStudent";
+  };
+
+  const getProfilePath = () => {
+    if (user?.role === "professor") return "/professor/profile";
+    if (user?.role === "admin") return "/admin/profile";
+    return "/student/profile";
+  };
 
 const headerStyle = {
   position: "fixed",
@@ -39,7 +53,10 @@ const headerStyle = {
   return (
     <>
       <header style={headerStyle}>
-        <div style={{ fontWeight: "bold" }}>
+        <div 
+          style={{ fontWeight: "bold", cursor: "pointer" }} 
+          onClick={() => navigate(getHomePath())}
+        >
           Sistema Escolar
         </div>
 
@@ -55,12 +72,25 @@ const headerStyle = {
             🔐 Senha
           </button>
 
-          <button
-            style={buttonStyle}
-            onClick={() => navigate("/student/profile")}
-          >
-            👤 Perfil
-          </button>
+          {user && (
+            <>
+              <button
+                style={buttonStyle}
+                onClick={() => navigate(getProfilePath())}
+              >
+                👤 Perfil
+              </button>
+              <button
+                style={{ ...buttonStyle, background: "#ef4444", color: "white" }}
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
+              >
+                🚪 Sair
+              </button>
+            </>
+          )}
         </div>
       </header>
 
