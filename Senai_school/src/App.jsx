@@ -19,6 +19,10 @@ import AdminScores from "./pages/admin/AdminScores";
 import AdminSchedules from "./pages/admin/AdminSchedules";
 import HomeProfessor from "./pages/professor/HomeProfessor";
 import RegisterProfessor from "./pages/professor/RegisterProfessor";
+import ScheduleTeacher from "./pages/professor/ScheduleTeacher"
+import TeacherScores from "./pages/professor/ScoresTeacher";
+import ClassTeacher from "./pages/professor/ClassTeacher"
+import ProfessorStudents from "./pages/professor/StudentsTeacher";
 import {
   ProtectedRoute,
   FirstTimeGate,
@@ -121,6 +125,66 @@ export default function App() {
         />
 
         <Route
+          path="/teacher/scores"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["professor"]}>
+                    <TeacherScores />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/teacher/class"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["professor"]}>
+                    <ClassTeacher />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/teacher/schedule"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["professor"]}>
+                    <ScheduleTeacher />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+                <Route
+          path="/teacher/enrollment"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["professor"]}>
+                    <ProfessorStudents />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
           path="/student/scores"
           element={
             <Layout>
@@ -134,6 +198,7 @@ export default function App() {
             </Layout>
           }
         />
+        
 
         <Route
           path="/student/profile"

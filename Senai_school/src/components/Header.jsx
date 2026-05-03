@@ -8,13 +8,19 @@ export default function Header() {
   const [openModal, setOpenModal] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const isDark = theme === "dark";
 
   function goProfile() {
     if (user?.role === "professor") navigate("/homeProfessor");
     else navigate("/student/profile");
   }
+
+    function handleLogout() {
+    logout();
+    navigate("/", { replace: true });
+  }
+
 
   return (
     <>
@@ -38,6 +44,9 @@ export default function Header() {
           </button>
           <button type="button" className="btn btn--ghost" onClick={goProfile}>
             Perfil
+          </button>
+          <button type="button" className="btn btn--ghost" onClick={handleLogout}>
+            Sair
           </button>
         </div>
       </header>

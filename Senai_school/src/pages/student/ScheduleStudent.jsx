@@ -21,33 +21,28 @@ export default function ScheduleStudent() {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    async function fetchSchedules() {
-      setLoading(true);
-      setError(null);
-      try {
-        const studentId =
-          typeof user.student === "object" ? user.student?.id : user.student;
-        if (!studentId) {
-          setSchedules([]);
-          return;
-        }
-        const scheduleRes = await api.get(`/schedules/student/${studentId}`);
-        setSchedules(scheduleRes.data.data || []);
-      } catch {
-        setError("Não foi possível carregar os horários.");
-        setSchedules([]);
-      } finally {
-        setLoading(false);
-      }
-    }
+useEffect(() => {
+  async function fetchSchedules() {
+    setLoading(true);
+    setError(null);
 
-    if (user?.student) {
-      fetchSchedules();
-    } else {
+    try {
+      const scheduleRes = await api.get("/schedules/me/student");
+      setSchedules(scheduleRes.data.data || []);
+    } catch {
+      setError("Não foi possível carregar os horários.");
+      setSchedules([]);
+    } finally {
       setLoading(false);
     }
-  }, [user]);
+  }
+
+  if (user?.role === "student") {
+    fetchSchedules();
+  } else {
+    setLoading(false);
+  }
+}, [user]);
 
   return (
     <main className="student-main">
