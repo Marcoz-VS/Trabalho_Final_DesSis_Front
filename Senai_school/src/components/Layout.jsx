@@ -1,12 +1,10 @@
 import Header from "./Header";
 
-export default function Layout({ children }) {
+export default function Layout({ children, showHeader = true }) {
   return (
     <div>
-      <Header/>
-      <main>
-        {children}
-      </main>
+      {showHeader ? <Header /> : null}
+      <main>{children}</main>
     </div>
   );
 }

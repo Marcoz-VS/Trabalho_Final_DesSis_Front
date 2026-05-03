@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect }  from  'react'
+import { createContext, useState, useEffect, useLayoutEffect } from "react";
 
 export const ThemeContext = createContext();
 
@@ -11,10 +11,17 @@ export function ThemeProvider({children}) {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
       };
 
+      useLayoutEffect(() => {
+        const root = document.documentElement;
+        if (theme === "dark") {
+          root.classList.add("dark");
+        } else {
+          root.classList.remove("dark");
+        }
+      }, [theme]);
+
       useEffect(() => {
-        document.body.style.backgroundColor = theme === 'light' ? '#f5f5f5' : '#222';
-        document.body.style.color = theme === 'light' ? '#000' : '#fff';
-        localStorage.setItem('theme', theme);
+        localStorage.setItem("theme", theme);
       }, [theme]);
 
     return(

@@ -1,78 +1,88 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { ThemeContext } from "../../context/ThemeContext";
+
+function formatDateOnly(value) {
+  if (!value) return "—";
+  const s = String(value);
+  const [y, m, d] = s.split("T")[0].split("-").map(Number);
+  if (!y || !m || !d) return s;
+  return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+}
 
 export default function EnrollmentStudent() {
-  const [ enrollments, setEnrollments] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useAuth();
-  const { theme } = useContext(ThemeContext);
-
-    
-const isDark = theme === "dark";
-
-const themeStyles = {
-  backgroundColor: isDark ? "#0f172a" : "#f5f5f5",
-  color: isDark ? "#f8fafc" : "#111827",
-  minHeight: "100vh",
-  padding: "40px",
-  transition: "all 0.3s ease",
-  marginTop: "50px"
-};
-
 
   useEffect(() => {
     async function fetchEnrollments() {
+      setLoading(true);
+      setError(null);
       try {
-         
-const studentId =
-  typeof user.student === "object"
-    ? user.student?.id
-    : user.student;
-
+        const studentId =
+          typeof user.student === "object" ? user.student?.id : user.student;
+        if (!studentId) {
+          setEnrollments([]);
+          return;
+        }
         const enrollmentRes = await api.get(`/enrollment/student/${studentId}`);
-        const enrollment = enrollmentRes.data.data;
-
-        console.log(enrollment);
-
-        setEnrollments(enrollment);
-
-      } catch (err) {
-        console.error(err);
+        setEnrollments(enrollmentRes.data.data || []);
+      } catch {
+        setError("Não foi possível carregar as matrículas.");
+        setEnrollments([]);
+      } finally {
+        setLoading(false);
       }
     }
 
-    fetchEnrollments();
+    if (user?.student) {
+      fetchEnrollments();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
-  }, []);
+  return (
+    <main className="student-main">
+      <div className="student-inner">
+        <h1 className="student-title">Matrículas</h1>
+        <p className="student-subtitle">Turmas e situação da matrícula.</p>
 
-  function formatDate(date) {
-  return new Date(date).toLocaleDateString("pt-BR");
-}
+        {error ? (
+          <p className="feedback feedback--error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-return (
-  <div style={themeStyles}>
-    <h2 style={{ marginBottom: "30px" }}>Minhas Matrículas</h2>
+        {loading ? (
+          <div className="empty-state" role="status">
+            Carregando…
+          </div>
+        ) : null}
 
-    {enrollments.map((enrollment) => (
-      <div
-        key={enrollment.id}
-        style={{
-          marginBottom: "20px",
-          border: "1px solid #ccc",
-          padding: "20px",
-          borderRadius: "8px",
-        }}
-      >
-        <h2>Turma: {enrollment.class?.name}</h2>
+        {!loading && !error && enrollments.length === 0 ? (
+          <div className="empty-state">Nenhuma matrícula encontrada.</div>
+        ) : null}
 
-        <h3>Ano: {enrollment.class?.year}</h3>
-        <h3>Semestre: {enrollment.class?.semester}</h3>
-
-        <h4>Status: {enrollment.status}</h4>
-        <h4>Data da matrícula: {formatDate(enrollment.enrolled_at)}</h4>
+        {!loading &&
+          enrollments.map((enrollment) => (
+            <article key={enrollment.id} className="list-card">
+              <h3>{enrollment.class?.name ?? "Turma"}</h3>
+              <p className="meta">
+                Ano {enrollment.class?.year ?? "—"} · Semestre{" "}
+                {enrollment.class?.semester ?? "—"}
+              </p>
+              <p className="meta">
+                <strong>Status</strong> {enrollment.status ?? "—"}
+              </p>
+              <p className="meta">
+                <strong>Data</strong> {formatDateOnly(enrollment.enrolled_at)}
+              </p>
+            </article>
+          ))}
       </div>
-    ))}
-  </div>
-);
+    </main>
+  );
 }

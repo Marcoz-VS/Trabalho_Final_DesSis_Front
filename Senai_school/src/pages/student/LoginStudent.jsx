@@ -1,27 +1,26 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
-import axios from 'axios'
-import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 export default function LoginStudent() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const location = useLocation();
 
-useEffect(() => {
-  if (location.state) {
-    setForm({
-      email: location.state.email || "",
-      password: location.state.password || ""
-    });
-  }
-}, [location.state]);
-  
+  useEffect(() => {
+    if (location.state?.email != null || location.state?.password != null) {
+      setForm({
+        email: location.state.email ?? "",
+        password: location.state.password ?? "",
+      });
+    }
+  }, [location.state]);
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -31,25 +30,29 @@ useEffect(() => {
     setLoading(true);
     setError(null);
 
-
     try {
       const { data } = await api.post("/login", form);
 
-      login(data.user, data.token);
-
-      if (data.user.role === "admin") {
-        navigate("/homeAdmin");
-      } 
-      else if (data.user.role === "professor") {
-        navigate("/homeProfessor");
-      } 
-      else {
-        navigate("/homeStudent");
+      const role = data.user.role;
+      if (role !== "student" && role !== "admin" && role !== "professor") {
+        setError("Perfil não suportado neste acesso.");
+        return;
       }
 
-    }catch (err) {
+      login(data.user, data.token);
+
+      if (data.user.firstTime) {
+        navigate("/first-login", { replace: true });
+      } else if (role === "admin") {
+        navigate("/admin", { replace: true });
+      } else if (role === "professor") {
+        navigate("/homeProfessor", { replace: true });
+      } else {
+        navigate("/homeStudent", { replace: true });
+      }
+    } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || "Erro na requisição.");
+        setError(err.response?.data?.message || "Não foi possível entrar.");
       } else {
         setError("Erro inesperado.");
       }
@@ -59,51 +62,63 @@ useEffect(() => {
   }
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f0f2f5" }}>
-      <form onSubmit={handleSubmit} style={{
-        display: "flex", flexDirection: "column", gap: "15px", padding: "30px",
-        backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", width: "100%", maxWidth: "350px"
-      }}>
-        <h2 style={{ textAlign: "center", color: "#1a1a2e" }}>Entrar na Senai-School</h2>
-        
-<input 
-  name="email" 
-  type="email" 
-  placeholder="E-mail" 
-  value={form.email}
-  onChange={handleChange} 
-  required 
-  style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
-/>
+    <div className="auth-screen">
+      <div className="auth-card">
+        <h2>Entrar</h2>
+        <p className="auth-lead">Use o e-mail e a senha fornecidos no cadastro.</p>
 
-<input 
-  name="password" 
-  type="password" 
-  placeholder="Senha" 
-  value={form.password}
-  onChange={handleChange} 
-  required 
-            style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }} 
-/>
+        <form onSubmit={handleSubmit}>
+          {error ? (
+            <p className="feedback feedback--error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
-        {error && <p style={{ color: "#e53e3e", fontSize: "0.85rem", textAlign: "center" }}>{error}</p>}
+          <div className="field">
+            <label htmlFor="login-email">E-mail</label>
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              className="input"
+              placeholder="seu@email.com"
+              value={form.email}
+              onChange={handleChange}
+              required
+              autoComplete="username"
+            />
+          </div>
 
-        <button type="submit" disabled={loading} style={{
-          padding: "12px", 
-          backgroundColor: "#1a1a2e", 
-          color: "#fff", 
-          border: "none",
-          borderRadius: "4px", 
-          cursor: loading ? "not-allowed" : "pointer", 
-          fontWeight: "bold"
-        }}>
-          {loading ? "Autenticando..." : "Entrar"}
-        </button>
-        
-        <p style={{ fontSize: "0.9rem", textAlign: "center" }}>
-          Novo por aqui? <Link to="/registerStudent" style={{ color: "#e94560", fontWeight: "bold", textDecoration: "none" }}>Crie uma conta</Link>
+          <div className="field">
+            <label htmlFor="login-password">Senha</label>
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              className="input"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={handleChange}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+
+          <button type="submit" className="btn btn--primary" disabled={loading}>
+            {loading ? "Entrando…" : "Entrar"}
+          </button>
+        </form>
+
+        <p className="text-center mt-1">
+          <Link to="/registerStudent" className="link-accent">
+            Criar conta (aluno)
+          </Link>
+          {" · "}
+          <Link to="/registerProfessor" className="link-accent">
+            Cadastro professor
+          </Link>
         </p>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,89 +1,123 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
+import axios from "axios";
 
 export default function UpdatePassModal({ open, onClose }) {
   const [form, setForm] = useState({
     current_password: "",
-    new_password: ""
+    new_password: "",
   });
-
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
 
-  if (!open) return null; 
+  useEffect(() => {
+    if (!open) {
+      setForm({ current_password: "", new_password: "" });
+      setMessage(null);
+      setError(null);
+    }
+  }, [open]);
+
+  if (!open) return null;
 
   function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(null);
+    setMessage(null);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setMessage(null);
 
     try {
       const res = await api.put("/users/change-password", form);
-
-      alert(res.data.message || "Senha alterada com sucesso!");
-      onClose();
-
+      setMessage(res.data.message || "Senha alterada.");
+      setForm({ current_password: "", new_password: "" });
     } catch (err) {
-      alert(err.response?.data?.message || "Erro ao alterar senha");
+      if (axios.isAxiosError(err)) {
+        const msgs = err.response?.data?.errors;
+        setError(
+          Array.isArray(msgs)
+            ? msgs.join(" ")
+            : err.response?.data?.message || "Não foi possível alterar a senha.",
+        );
+      } else {
+        setError("Erro inesperado.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h3>Alterar Senha</h3>
+    <div
+      className="modal-overlay"
+      role="presentation"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-pass-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="modal-pass-title">Alterar senha</h2>
+
+        {error ? (
+          <p className="feedback feedback--error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {message ? (
+          <p className="feedback feedback--success" role="status">
+            {message}
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="password" 
-            name="current_password"
-            placeholder="Senha atual"
-            value={form.current_password}
-            onChange={handleChange}
-            required
-          />
+          <div className="field">
+            <label htmlFor="modal-current">Senha atual</label>
+            <input
+              id="modal-current"
+              type="password"
+              name="current_password"
+              className="input"
+              value={form.current_password}
+              onChange={handleChange}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="modal-new">Nova senha</label>
+            <input
+              id="modal-new"
+              type="password"
+              name="new_password"
+              className="input"
+              value={form.new_password}
+              onChange={handleChange}
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </div>
 
-          <input
-            type="password" 
-            name="new_password"
-            placeholder="Nova senha"
-            value={form.new_password}
-            onChange={handleChange}
-            required
-          />
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Salvando..." : "Salvar"}
-          </button>
-
-          <button type="button" onClick={onClose}>
-            Cancelar
-          </button>
+          <div className="btn-row btn-row--split">
+            <button type="button" className="btn btn--secondary" onClick={onClose}>
+              Fechar
+            </button>
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              {loading ? "Salvando…" : "Salvar"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.5)",
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: 20,
-  margin: "100px auto",
-  width: 300,
-};

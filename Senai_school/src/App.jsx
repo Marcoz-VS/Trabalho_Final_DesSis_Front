@@ -1,71 +1,197 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./context/AuthContext";
-import LoginStudent from './pages/student/LoginStudent'
-import RegisterStudent from './pages/student/RegisterStudent'
-import HomeStudent from './pages/student/HomeStudent'
-import ScoreStudent from './pages/student/ScoreStudent'
-import ProfileStudent from './pages/student/ProfileStudent'
+import { Routes, Route } from "react-router-dom";
+import LoginStudent from "./pages/student/LoginStudent";
+import RegisterStudent from "./pages/student/RegisterStudent";
+import HomeStudent from "./pages/student/HomeStudent";
+import ScoreStudent from "./pages/student/ScoreStudent";
+import ProfileStudent from "./pages/student/ProfileStudent";
 import FirstTimePassword from "./pages/student/FirstTimeUpdate";
-import ClassStudent from "./pages/student/ClassStudent"
-import ScheduleStudent from './pages/student/ScheduleStudent'
-import EnrollmentStudent from './pages/student/EnrollmentStudent'
-import Layout from "./components/Layout"
-import { useContext } from "react";
-import { ThemeContext } from "./context/ThemeContext";
+import ClassStudent from "./pages/student/ClassStudent";
+import ScheduleStudent from "./pages/student/ScheduleStudent";
+import EnrollmentStudent from "./pages/student/EnrollmentStudent";
+import Layout from "./components/Layout";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminStudents from "./pages/admin/AdminStudents";
+import AdminClasses from "./pages/admin/AdminClasses";
+import AdminEnrollments from "./pages/admin/AdminEnrollments";
+import AdminScores from "./pages/admin/AdminScores";
+import AdminSchedules from "./pages/admin/AdminSchedules";
+import HomeProfessor from "./pages/professor/HomeProfessor";
+import RegisterProfessor from "./pages/professor/RegisterProfessor";
+import {
+  ProtectedRoute,
+  FirstTimeGate,
+  FirstLoginRoute,
+  RoleRoute,
+} from "./components/ProtectedRoute";
 
 export default function App() {
-  const { theme } = useContext(ThemeContext);
-  const {user} = useAuth()
-
   return (
-    <div className={theme}>
-      <Layout>
-    <Routes>
-      <Route path="/" element={<LoginStudent />} />
-      <Route path="/registerStudent" element={<RegisterStudent />} />
-
-      <Route path="/first-login" element={<FirstTimePassword />} />
-
-      <Route
-        path="/homeStudent"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <HomeStudent />
-        }
-      />
-
-      <Route
-        path="/student/scores"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <ScoreStudent />
-        }
-      />
-
-      <Route
-        path="/student/profile"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <ProfileStudent />
-        }
-      />
+    <>
+      <Routes>
         <Route
-        path="/student/class"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <ClassStudent />
-        }
-      />
+          path="/"
+          element={
+            <Layout showHeader={false}>
+              <LoginStudent />
+            </Layout>
+          }
+        />
         <Route
-        path="/student/schedule"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <ScheduleStudent />
-        }
-      />
-      <Route
-        path="/student/enrollment"
-        element={
-          user?.firstTime ? <Navigate to="/first-login" /> : <EnrollmentStudent />
-        }
-      />
-    </Routes>
-    </Layout>
-    </div>
+          path="/registerStudent"
+          element={
+            <Layout showHeader={false}>
+              <RegisterStudent />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/registerProfessor"
+          element={
+            <Layout showHeader={false}>
+              <RegisterProfessor />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/first-login"
+          element={
+            <Layout showHeader={false}>
+              <FirstLoginRoute>
+                <FirstTimePassword />
+              </FirstLoginRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <Layout showHeader={false}>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["admin"]}>
+                    <AdminLayout />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="students" element={<AdminStudents />} />
+          <Route path="classes" element={<AdminClasses />} />
+          <Route path="enrollments" element={<AdminEnrollments />} />
+          <Route path="scores" element={<AdminScores />} />
+          <Route path="schedules" element={<AdminSchedules />} />
+        </Route>
+
+        <Route
+          path="/homeStudent"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <HomeStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/homeProfessor"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["professor"]}>
+                    <HomeProfessor />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/student/scores"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <ScoreStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/student/profile"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <ProfileStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/student/class"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <ClassStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/student/schedule"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <ScheduleStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/student/enrollment"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <FirstTimeGate>
+                  <RoleRoute roles={["student"]}>
+                    <EnrollmentStudent />
+                  </RoleRoute>
+                </FirstTimeGate>
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+      </Routes>
+    </>
   );
 }

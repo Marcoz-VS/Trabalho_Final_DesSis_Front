@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
+import axios from "axios";
 
 export default function EditProfileModal({ student, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -7,76 +8,114 @@ export default function EditProfileModal({ student, onClose, onSave }) {
     birth_date: student.birth_date || "",
     avatar_url: student.avatar_url || "",
   });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      phone: student.phone || "",
+      birth_date: student.birth_date || "",
+      avatar_url: student.avatar_url || "",
+    });
+    setError(null);
+  }, [student]);
 
   function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(null);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
       const res = await api.put(`/students/${student.id}`, form);
-
       onSave(res.data.data);
       onClose();
     } catch (err) {
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        const msgs = err.response?.data?.errors;
+        setError(
+          Array.isArray(msgs)
+            ? msgs.join(" ")
+            : err.response?.data?.message || "Não foi possível salvar.",
+        );
+      } else {
+        setError("Erro inesperado.");
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h3>Editar Perfil</h3>
+    <div
+      className="modal-overlay"
+      role="presentation"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-profile-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="modal-profile-title">Editar perfil</h2>
+
+        {error ? (
+          <p className="feedback feedback--error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit}>
-          <input
-            name="phone"
-            placeholder="Telefone"
-            value={form.phone}
-            onChange={handleChange}
-          />
+          <div className="field">
+            <label htmlFor="edit-phone">Telefone</label>
+            <input
+              id="edit-phone"
+              name="phone"
+              className="input"
+              placeholder="(00) 00000-0000"
+              value={form.phone}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="edit-birth">Data de nascimento</label>
+            <input
+              id="edit-birth"
+              name="birth_date"
+              type="date"
+              className="input"
+              value={form.birth_date}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="edit-avatar">URL do avatar</label>
+            <input
+              id="edit-avatar"
+              name="avatar_url"
+              className="input"
+              placeholder="https://…"
+              value={form.avatar_url}
+              onChange={handleChange}
+            />
+          </div>
 
-          <input
-            name="birth_date"
-            type="date"
-            value={form.birth_date}
-            onChange={handleChange}
-          />
-
-          <input
-            name="avatar_url"
-            placeholder="URL do avatar"
-            value={form.avatar_url}
-            onChange={handleChange}
-          />
-
-          <button type="submit">Salvar</button>
-          <button type="button" onClick={onClose}>
-            Cancelar
-          </button>
+          <div className="btn-row btn-row--split">
+            <button type="button" className="btn btn--secondary" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              {loading ? "Salvando…" : "Salvar"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.5)",
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: 20,
-  margin: "100px auto",
-  width: 300,
-};

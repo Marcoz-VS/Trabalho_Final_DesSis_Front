@@ -1,67 +1,78 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { ThemeContext } from "../../context/ThemeContext";
 
 export default function ClassStudent() {
-  const [classes, setClass] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useAuth();
-  const { theme } = useContext(ThemeContext);
-
-    
-const isDark = theme === "dark";
-
-const themeStyles = {
-  backgroundColor: isDark ? "#0f172a" : "#f5f5f5",
-  color: isDark ? "#f8fafc" : "#111827",
-  minHeight: "100vh",
-  padding: "40px",
-  transition: "all 0.3s ease",
-  marginTop: "50px"
-};
 
   useEffect(() => {
     async function fetchClass() {
+      setLoading(true);
+      setError(null);
       try {
         const studentId =
-          typeof user.student === "object"
-            ? user.student?.id
-            : user.student;
-
-        if (!studentId) return;
-
+          typeof user.student === "object" ? user.student?.id : user.student;
+        if (!studentId) {
+          setClasses([]);
+          return;
+        }
         const classRes = await api.get(`/enrollment/student/${studentId}`);
-        const classess = classRes.data.data;
-
-        setClass(classess);
-
-        console.log(classess);
-      } catch (err) {
-        console.error(err);
+        setClasses(classRes.data.data || []);
+      } catch {
+        setError("Não foi possível carregar as turmas.");
+        setClasses([]);
+      } finally {
+        setLoading(false);
       }
     }
 
     if (user?.student) {
       fetchClass();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   return (
-    <div style={themeStyles}>
-      <h2 style={{ marginBottom: "50px" }}>Minhas Turmas</h2>
+    <main className="student-main">
+      <div className="student-inner">
+        <h1 className="student-title">Turmas</h1>
+        <p className="student-subtitle">Turmas em que você está matriculado.</p>
 
-      {classes.map((classe) => (
-        <div key={classe.id}  style={{
-          marginBottom: "20px",
-          border: "1px solid #ccc",
-          padding: "20px",
-          borderRadius: "8px",
-        }}>
-          <h2>Turma: {classe.class?.name}</h2>
-          <h3>Ano: {classe.class?.year}</h3>
-          <h3>Semestre: {classe.class?.semester}</h3>
-        </div>
-      ))}
-    </div>
+        {error ? (
+          <p className="feedback feedback--error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        {loading ? (
+          <div className="empty-state" role="status">
+            Carregando…
+          </div>
+        ) : null}
+
+        {!loading && !error && classes.length === 0 ? (
+          <div className="empty-state">Nenhuma turma encontrada.</div>
+        ) : null}
+
+        {!loading &&
+          classes.map((row) => (
+            <article key={row.id} className="list-card">
+              <h3>{row.class?.name ?? "Turma"}</h3>
+              <p className="meta">
+                Ano {row.class?.year ?? "—"} · Semestre {row.class?.semester ?? "—"}
+              </p>
+              {row.status ? (
+                <p className="meta">
+                  <strong>Matrícula</strong> {row.status}
+                </p>
+              ) : null}
+            </article>
+          ))}
+      </div>
+    </main>
   );
 }

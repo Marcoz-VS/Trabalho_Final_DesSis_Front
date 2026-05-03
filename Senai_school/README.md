@@ -1,3 +1,15 @@
+# Senai school (front)
+
+Na pasta do projeto: copie `.env.example` para `.env` se quiser outra URL da API (`VITE_API_URL`). Depois:
+
+```bash
+npm run dev
+```
+
+A API costuma rodar em outro terminal com `node src/server.js` no repositório do back (porta 3000).
+
+---
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

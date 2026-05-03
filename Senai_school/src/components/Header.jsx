@@ -2,72 +2,47 @@ import { useState, useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import UpdatePassModal from "./UpdatePassModal";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
   const [openModal, setOpenModal] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
-
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isDark = theme === "dark";
 
-const headerStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  height: "60px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0 20px",
-  background: isDark ? "#1e293b" : "#fff",
-  color: isDark ? "#f8fafc" : "#111827",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-  zIndex: 1000
-};
-
-  const buttonStyle = {
-    marginLeft: "10px",
-    padding: "8px 12px",
-    cursor: "pointer",
-    borderRadius: "6px",
-    border: "none",
-    background: isDark ? "#334155" : "#e5e7eb",
-    color: isDark ? "#f8fafc" : "#111827"
-  };
+  function goProfile() {
+    if (user?.role === "professor") navigate("/homeProfessor");
+    else navigate("/student/profile");
+  }
 
   return (
     <>
-      <header style={headerStyle}>
-        <div style={{ fontWeight: "bold" }}>
-          Sistema Escolar
-        </div>
-
-        <div>
-          <button style={buttonStyle} onClick={toggleTheme}>
-            {isDark ? "🌞 Light" : "🌙 Dark"}
-          </button>
-
+      <header className="app-header">
+        <span className="app-header__brand">Sistema escolar</span>
+        <div className="app-header__actions">
           <button
-            style={buttonStyle}
+            type="button"
+            className="btn btn--ghost"
+            onClick={toggleTheme}
+            aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+          >
+            {isDark ? "Claro" : "Escuro"}
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
             onClick={() => setOpenModal(true)}
           >
-            🔐 Senha
+            Senha
           </button>
-
-          <button
-            style={buttonStyle}
-            onClick={() => navigate("/student/profile")}
-          >
-            👤 Perfil
+          <button type="button" className="btn btn--ghost" onClick={goProfile}>
+            Perfil
           </button>
         </div>
       </header>
 
-      <UpdatePassModal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-      />
+      <UpdatePassModal open={openModal} onClose={() => setOpenModal(false)} />
     </>
   );
 }

@@ -1,104 +1,119 @@
-import { useEffect, useState, useContext} from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import EditProfileModal from '../../components/EditProfileModal';
-import { ThemeContext } from "../../context/ThemeContext";
+import EditProfileModal from "../../components/EditProfileModal";
 
 export default function ProfileStudent() {
   const { user } = useAuth();
   const [student, setStudent] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const { theme } = useContext(ThemeContext);
-
-    
-const isDark = theme === "dark";
-
-const themeStyles = {
-  backgroundColor: isDark ? "#0f172a" : "#f5f5f5",
-  color: isDark ? "#f8fafc" : "#111827",
-  minHeight: "100vh",
-  padding: "40px",
-  transition: "all 0.3s ease",
-  marginTop: "50px"
-};
-
- const buttonStyle = {
-    marginLeft: "10px",
-    padding: "8px 12px",
-    cursor: "pointer",
-    borderRadius: "6px",
-    border: "none",
-    background: isDark ? "#334155" : "#e5e7eb",
-    color: isDark ? "#f8fafc" : "#111827"
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchStudent() {
+      setLoading(true);
+      setError(null);
       try {
         const studentId =
-          typeof user.student === "object"
-            ? user.student?.id
-            : user.student;
-
-        if (!studentId) return;
-
+          typeof user.student === "object" ? user.student?.id : user.student;
+        if (!studentId) {
+          setStudent(null);
+          return;
+        }
         const res = await api.get(`/students/${studentId}`);
-        console.log(res)
         setStudent(res.data.data);
-
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setError("Não foi possível carregar o perfil.");
+        setStudent(null);
+      } finally {
+        setLoading(false);
       }
     }
 
     if (user?.student) {
       fetchStudent();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   return (
-    <div style={themeStyles}>
-      <h2>Meu Perfil</h2>
+    <main className="student-main">
+      <div className="student-inner">
+        <h1 className="student-title">Perfil</h1>
+        <p className="student-subtitle">Seus dados e matrícula acadêmica.</p>
 
-      {!student ? (
-        <p>Carregando...</p>
-      ) : (
-        <div style={{ border: "1px solid #ccc", padding: 20, borderRadius: '8px', marginTop: '40px' }}>
-          
-          <img
-            src={student.avatar_url}
-            alt="avatar"
-            width={100}
+        {error ? (
+          <p className="feedback feedback--error" role="alert">
+            {error}
+          </p>
+        ) : null}
+
+        {loading ? (
+          <div className="empty-state" role="status">
+            Carregando…
+          </div>
+        ) : null}
+
+        {!loading && student ? (
+          <div className="list-card" style={{ maxWidth: "32rem" }}>
+            <div className="avatar-wrap">
+              {student.avatar_url ? (
+                <img src={student.avatar_url} alt="" />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--text-muted)",
+                    fontSize: "2rem",
+                  }}
+                  aria-hidden
+                >
+                  ·
+                </div>
+              )}
+            </div>
+
+            <p className="meta">
+              <strong>Matrícula</strong>
+              <br />
+              {student.registration}
+            </p>
+            <p className="meta">
+              <strong>Telefone</strong>
+              <br />
+              {student.phone || "—"}
+            </p>
+            <p className="meta">
+              <strong>Nascimento</strong>
+              <br />
+              {student.birth_date || "—"}
+            </p>
+
+            <button
+              type="button"
+              className="btn btn--secondary"
+              style={{ marginTop: "1.25rem", width: "auto" }}
+              onClick={() => setOpenModal(true)}
+            >
+              Editar perfil
+            </button>
+          </div>
+        ) : null}
+
+        {openModal && student ? (
+          <EditProfileModal
+            student={student}
+            onClose={() => setOpenModal(false)}
+            onSave={setStudent}
           />
-
-          <p style={{fontSize: '20px'}}>
-            <strong>Matrícula:</strong>{" "}
-            {student.registration}
-          </p>
-
-          <p style={{fontSize: '20px'}}>
-            <strong>Telefone:</strong>{" "}
-            {student.phone || "Adicione um telefone"}
-          </p>
-
-          <p style={{fontSize: '20px'}}>
-            <strong>Data de nascimento:</strong>{" "}
-            {student.birth_date || "Adicione sua data"}
-          </p>
-
-          <button  style={buttonStyle} onClick={() => setOpenModal(true)}>
-            Editar perfil
-          </button>
-        </div>
-      )}
-
-      {openModal && (
-        <EditProfileModal
-          student={student}
-          onClose={() => setOpenModal(false)}
-          onSave={setStudent}
-        />
-      )}
-    </div>
+        ) : null}
+      </div>
+    </main>
   );
 }

@@ -7,92 +7,99 @@ export default function FirstTimePassword() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError(null);
 
     if (password !== confirm) {
-      return alert("As senhas não coincidem");
+      setError("As senhas não coincidem.");
+      return;
     }
 
     if (password.length < 6) {
-      return alert("Senha deve ter no mínimo 6 caracteres");
+      setError("A senha deve ter pelo menos 6 caracteres.");
+      return;
     }
 
     try {
       setLoading(true);
+      await api.patch(`/users/firstTimeUpdate/${user.id}`, { password });
 
-const res = await api.patch(`/users/firstTimeUpdate/${user.id}`, {
-  password
-});
-
-setUser({
-  ...user,
-  firstTime: false
-});
-
-localStorage.setItem("user", JSON.stringify({
-  ...user,
-  firstTime: false
-}));
-
-navigate("/homeStudent");
-
+      const next = { ...user, firstTime: false };
+      setUser(next);
+      localStorage.setItem("user", JSON.stringify(next));
+      navigate(
+        user.role === "admin"
+          ? "/admin"
+          : user.role === "professor"
+            ? "/homeProfessor"
+            : "/homeStudent",
+        { replace: true },
+      );
     } catch (err) {
-      alert(err.response?.data?.message || "Erro ao definir senha");
+      const msgs = err?.response?.data?.errors;
+      setError(
+        Array.isArray(msgs)
+          ? msgs.join(" ")
+          : err?.response?.data?.message || "Não foi possível salvar a senha.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={container}>
-      <div style={card}>
-        <h2>Primeiro acesso </h2>
-        <p>Defina sua nova senha para continuar</p>
+    <div className="auth-screen">
+      <div className="auth-card">
+        <h2>Primeiro acesso</h2>
+        <p className="auth-lead">Defina uma nova senha para continuar usando o sistema.</p>
 
         <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            placeholder="Nova senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {error ? (
+            <p className="feedback feedback--error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
-          <input
-            type="password"
-            placeholder="Confirmar senha"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-          />
+          <div className="field">
+            <label htmlFor="ft-pass">Nova senha</label>
+            <input
+              id="ft-pass"
+              type="password"
+              className="input"
+              placeholder="Mínimo 6 caracteres"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="ft-confirm">Confirmar senha</label>
+            <input
+              id="ft-confirm"
+              type="password"
+              className="input"
+              placeholder="Repita a senha"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              minLength={6}
+              autoComplete="new-password"
+            />
+          </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Salvando..." : "Salvar senha"}
+          <button type="submit" className="btn btn--primary" disabled={loading}>
+            {loading ? "Salvando…" : "Continuar"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-
-const container = {
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  height: "100vh",
-  background: "#f5f5f5"
-};
-
-const card = {
-  background: "#fff",
-  padding: "30px",
-  borderRadius: "10px",
-  width: "300px",
-  textAlign: "center",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-};
